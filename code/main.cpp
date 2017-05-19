@@ -2,7 +2,6 @@
 #include <opencv2/opencv.hpp>
 #include <glog/logging.h>
 #include <gflags/gflags.h>
-
 #include "plane_stereo.h"
 
 using namespace std;
@@ -26,11 +25,15 @@ int main(int argc, char** argv){
     std::vector<Eigen::Vector3d>& vertices = mesh.vertices;
     const int W = (int)sqrt((double)vertices.size());
 
+	constexpr int max_iter = 10000;
+	constexpr double threshold = 0.5;
+
+	std::vector<int> non_ground_index = DPM::NonGroundIndex(vertices, threshold);
     // Generate plane proposals by RANSAC
     std::vector<DPM::Plane3D> planes;
     cv::Mat plane_map;
     printf("Fitting plane...\n");
-    DPM::GeneratePlanes(vertices, planes, plane_map, 10000, 0.5);
+    DPM::GeneratePlanes(vertices, planes, plane_map, max_iter, threshold);
     printf("%d planes fitted", (int)planes.size());
 
 //    cv::resize(plane_map, plane_map, cv::Size(500, 500), 0, 0, cv::INTER_NEAREST);
@@ -51,7 +54,9 @@ int main(int argc, char** argv){
 //    cv::waitKey(0);
 
     DPM::Mesh result_mesh;
-    result_mesh.vertices = new_vertices;
+	for(int vid: non_ground_index){
+		result_mesh.vertices.push_back(new_vertices[vid]);
+	}
     result_mesh.Write(argv[2]);
 
     return 0;

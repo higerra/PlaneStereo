@@ -8,5 +8,3 @@ set(HEADER_FILES block.h graph.h BP-S.h GCoptimization.h ICM.h LinkedBlockList.h
 set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -W -Wall -O3 -DUSE_64_BIT_PTR_CAST")
 
 add_library(MRF ${SOURCE_FILES} ${HEADER_FILES})
-
-target_link_libraries(MRF glog)

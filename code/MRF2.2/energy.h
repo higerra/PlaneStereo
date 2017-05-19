@@ -113,7 +113,7 @@
 #include <assert.h>
 #include <cfloat>
 #include "graph.h"
-#include <glog/logging.h>
+// #include <glog/logging.h>
 
 class Energy : Graph {
 public:
@@ -272,7 +272,11 @@ inline void Energy::add_term2(Var x, Var y,
        0 B
        C 0
     */
-    CHECK_GE(B+C+epsilon, 0) << B << ' ' <<C;
+    // CHECK_GE(B+C+epsilon, 0) << B << ' ' <<C;
+	if(B+C+epsilon <= 0){
+		printf("Assertion failed: B: %f, C: %f\n", B, C);
+		exit(-1);
+	}
 
     if (B < 0)
     {

@@ -17,6 +17,9 @@
 
 namespace DPM{
 
+	std::vector<int> NonGroundIndex(const std::vector<Eigen::Vector3d>& vertices,
+	                             const double threshold);
+
     void RemoveGround(std::vector<Eigen::Vector3d>& vertices,
                       const double threshold);
 

@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <limits>
 #include "string.h"
-#include <glog/logging.h>
+// #include <glog/logging.h>
 
 #define MAX_INTT std::numeric_limits<int>::max()
 
@@ -1009,7 +1009,11 @@ void Expansion::perform_alpha_expansion(LabelType alpha_label)
 	if ( size > 0 )
 	{
 		Energy::Var *variables = (Energy::Var *) new Energy::Var[size];
-		CHECK(variables != NULL) << "Out of memory!";
+		// CHECK(variables != NULL) << "Out of memory!";
+		if(variables == NULL){
+			printf("Out of memory!");
+			exit(-1);
+		}
 		for ( i = 0; i < size; i++ )
 			variables[i] = e ->add_variable();
 

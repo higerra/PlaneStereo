@@ -3,6 +3,7 @@
 //
 
 #include <math.h>
+#include <random>
 
 #include "plane_stereo.h"
 
@@ -15,7 +16,19 @@ using namespace Eigen;
 
 namespace DPM{
 
-    void RemoveGround(std::vector<Eigen::Vector3d>& vertices,
+	std::vector<int> NonGroundIndex(const std::vector<Eigen::Vector3d>& vertices,
+	                             const double threshold){
+		Plane3D ground_plane(Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 1));
+		std::vector<int> non_ground_index;
+		for(int i=0; i<vertices.size(); ++i){
+			if(ground_plane.getDistance(vertices[i]) > threshold){
+				non_ground_index.push_back(i);
+			}
+		}
+		return non_ground_index;
+	}
+
+	void RemoveGround(std::vector<Eigen::Vector3d>& vertices,
                       const double threshold){
         Plane3D ground_plane(Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 1));
         std::vector<Eigen::Vector3d> non_ground_vert;
