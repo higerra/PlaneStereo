@@ -166,17 +166,19 @@ bool planeFromPointsRANSAC(const std::vector<Eigen::Vector3d> &pts, Plane3D &pla
     Plane3D curplane(pts[id1], pts[id2], pts[id3]);
     vector<bool> cur_inlier(pts.size(), false);
     vector<Vector3d> inliers;
+    inliers.reserve(pts.size());
     for (int i = 0; i < pts.size(); ++i) {
       double dis = curplane.getDistance(pts[i]);
       // printf("dis: %f\n", dis);
       if (dis < dis_thres) {
-//        printf("c001\n");
+        printf("c001\n");
 //        printf("inliers.size(): %d\n", (int)inliers.size());
 //        printf("pts[%d]: (%f, %f, %f)\n", i, pts[i][0], pts[i][1], pts[i][2]);
-        inliers.push_back(pts[i]);
-        // printf("c002\n");
+        // inliers.push_back(pts[i]);
+        inliers.emplace_back(pts[i][0], pts[i][1], pts[i][2]);
+        printf("c002\n");
         cur_inlier[i] = true;
-        // printf("c003\n");
+        printf("c003\n");
       }
     }
     if (inliers.size() > max_inlier) {

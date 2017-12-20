@@ -64,7 +64,7 @@ void GeneratePlanes(const std::vector<Eigen::Vector3d> &pc,
 
   color_map = cv::Mat(W, W, CV_8UC3, cv::Scalar(255, 255, 255));
 
-  RemoveGround(vertices, threshold);
+  // RemoveGround(vertices, threshold);
   int iter = 0;
   while (vertices.size() > 3) {
     Plane3D cur_plane;

@@ -22,13 +22,18 @@ int main(int argc, char **argv) {
   DPM::Mesh mesh;
   CHECK(mesh.Read(std::string(argv[1]))) << "Can not read mesh: " << argv[1];
   printf("Total number of vertices: %d\n", (int) mesh.vertices.size());
-  std::vector<Eigen::Vector3d> &vertices = mesh.vertices;
+  std::vector<Eigen::Vector3d> vertices = mesh.vertices;
   const int W = (int) sqrt((double) vertices.size());
 
   constexpr int max_iter = 100;
   constexpr double threshold = 0.5;
 
-  std::vector<int> non_ground_index = DPM::NonGroundIndex(vertices, threshold);
+  // std::vector<int> non_ground_index = DPM::NonGroundIndex(vertices, threshold);
+  std::vector<int> non_ground_index;
+  for (int i=0; i<vertices.size(); ++i){
+    non_ground_index.push_back(i);
+  }
+  printf("Number of vertices: %d\n", (int) vertices.size());
   // Generate plane proposals by RANSAC
   std::vector<DPM::Plane3D> planes;
   cv::Mat plane_map;
