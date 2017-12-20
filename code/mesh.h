@@ -7,25 +7,24 @@
 
 namespace DPM {
 
-    struct Mesh {
-        std::vector<Eigen::Vector3d> vertices;
-        std::vector<Eigen::Vector3i> faces;
-        bool Read(const std::string& filename);
+struct Mesh {
+  std::vector<Eigen::Vector3d> vertices;
+  std::vector<Eigen::Vector3i> faces;
+  bool Read(const std::string &filename);
 
-        bool Write(const std::string& filename) const;
-        bool Merge(const Mesh& mesh);
-        friend std::ostream& operator<<(std::ostream& ostr, const Mesh& lhs);
-    };
+  bool Write(const std::string &filename) const;
+  bool Merge(const Mesh &mesh);
+  friend std::ostream &operator<<(std::ostream &ostr, const Mesh &lhs);
+};
 
-    struct MeshGroup {
-        std::vector<Mesh> meshes;
-        bool Read(const std::string& filename);
-        bool Write(const std::string& filename) const;
+struct MeshGroup {
+  std::vector<Mesh> meshes;
+  bool Read(const std::string &filename);
+  bool Write(const std::string &filename) const;
 
-        bool ReadData(const std::string& filename);
-        bool WriteData(const std::string& filename) const;
-    };
-
+  bool ReadData(const std::string &filename);
+  bool WriteData(const std::string &filename) const;
+};
 
 } // DPM
 

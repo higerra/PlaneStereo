@@ -14,26 +14,25 @@
 #include "mesh.h"
 #include "plane3D.h"
 
+namespace DPM {
 
-namespace DPM{
+std::vector<int> NonGroundIndex(const std::vector<Eigen::Vector3d> &vertices,
+                                const double threshold);
 
-	std::vector<int> NonGroundIndex(const std::vector<Eigen::Vector3d>& vertices,
-	                             const double threshold);
+void RemoveGround(std::vector<Eigen::Vector3d> &vertices,
+                  const double threshold);
 
-    void RemoveGround(std::vector<Eigen::Vector3d>& vertices,
-                      const double threshold);
+void GeneratePlanes(const std::vector<Eigen::Vector3d> &pc,
+                    std::vector<Plane3D> &planes,
+                    cv::Mat &color_map,
+                    const int inner_iter = 10,
+                    const double threshold = 1);
 
-    void GeneratePlanes(const std::vector<Eigen::Vector3d>& pc,
-                        std::vector<Plane3D>& planes,
-                        cv::Mat& color_map,
-                        const int inner_iter = 10000,
-                        const double threshold = 1);
-
-    void SolvePlaneStereo(const std::vector<Eigen::Vector3d>& pt,
-                          const std::vector<Plane3D>& planes,
-                          std::vector<Eigen::Vector3d>& new_vertices,
-                          std::vector<int>& plane_assignment,
-                          const double lambda=1.0);
+void SolvePlaneStereo(const std::vector<Eigen::Vector3d> &pt,
+                      const std::vector<Plane3D> &planes,
+                      std::vector<Eigen::Vector3d> &new_vertices,
+                      std::vector<int> &plane_assignment,
+                      const double lambda = 1.0);
 } //namespace DPM
 
 
