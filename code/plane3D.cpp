@@ -19,19 +19,14 @@ double Plane3D::epsilon = 1e-4;
 
 Plane3D::Plane3D(const Vector3d &p0, const Vector3d &p1, const Vector3d &p2) {
   Matrix3d A;
-  Vector3d b(3);
-  b[0] = -1;
-  b[1] = -1;
-  b[2] = -1;
+  Vector3d b(-1, -1, -1);
   A.block<1, 3>(0, 0) = p0;
   A.block<1, 3>(1, 0) = p1;
   A.block<1, 3>(2, 0) = p2;
-  const double Adet = A.determinant();
-  if (Adet <= epsilon) {
-    printf("Points colinear: (%.5f,%.5f,%.5f),(%.5f,%.5f,%.5f),(%.5f,%.5f,%.5f)\n", p0[0], p0[1], p0[2],
-           p1[0], p1[1], p1[2], p2[0], p2[1], p2[2]);
-    CHECK_NE(A.determinant(), 0);
-  }
+  CHECK (!plane_util::ThreePointsColinear(p0, p1, p2)) << "Colinear points"
+                                                       << endl << "p0:" << p0
+                                                       << endl << "p1:" << p1
+                                                       << endl << "p2:" << p2;
   normal = A.inverse() * b;
   const double norm = normal.norm();
   if (norm <= epsilon) {
@@ -95,18 +90,24 @@ void planeIntersection(const Plane3D &plane1,
   }
 }
 
-bool planeFromPointsLeastSquare(const std::vector<Eigen::Vector3d> &pts, Plane3D &plane) {
-  MatrixXd A(pts.size(), 3);
+bool planeFromPointsLeastSquare(const std::vector<Eigen::Vector3d>& pts, Plane3D &plane) {
   VectorXd b(pts.size());
+  // MatrixXd A(pts.size(), 3);
+  Eigen::Map<const Eigen::MatrixXd> A(&pts[0][0], pts.size(), 3);
+  cout << A.rows() << ' ' << A.cols() << endl;
+
+  std::cout << A << std::endl;
+
   for (auto i = 0; i < pts.size(); ++i) {
-    A.block<1, 3>(i, 0) = pts[i];
+    // A.block<1, 3>(i, 0) = pts[i];
     b[i] = -1;
   }
   Vector3d n = A.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
   const double epsilon = 1e-10;
   const double nn = n.norm();
-  if (nn < epsilon)
+  if (nn < epsilon) {
     return false;
+  }
   n /= nn;
   Vector3d pt(0, 0, 0);
   if (n[0] != 0)
@@ -155,13 +156,9 @@ bool planeFromPointsRANSAC(const std::vector<Eigen::Vector3d> &pts, Plane3D &pla
     A.block<1, 3>(0, 0) = pts[id1];
     A.block<1, 3>(1, 0) = pts[id2];
     A.block<1, 3>(2, 0) = pts[id3];
-    if (A.determinant() < epsilon) {
+    if (plane_util::ThreePointsColinear(pts[id1], pts[id2], pts[id3])) {
       continue;
     }
-
-    //check if three points are colinear
-    if ((pts[id1] - pts[id2]).cross(pts[id1] - pts[id3]).norm() < epsilon)
-      continue;
 
     Plane3D curplane(pts[id1], pts[id2], pts[id3]);
     vector<bool> cur_inlier(pts.size(), false);
@@ -169,16 +166,9 @@ bool planeFromPointsRANSAC(const std::vector<Eigen::Vector3d> &pts, Plane3D &pla
     inliers.reserve(pts.size());
     for (int i = 0; i < pts.size(); ++i) {
       double dis = curplane.getDistance(pts[i]);
-      // printf("dis: %f\n", dis);
       if (dis < dis_thres) {
-        printf("c001\n");
-//        printf("inliers.size(): %d\n", (int)inliers.size());
-//        printf("pts[%d]: (%f, %f, %f)\n", i, pts[i][0], pts[i][1], pts[i][2]);
-        // inliers.push_back(pts[i]);
         inliers.emplace_back(pts[i][0], pts[i][1], pts[i][2]);
-        printf("c002\n");
         cur_inlier[i] = true;
-        printf("c003\n");
       }
     }
     if (inliers.size() > max_inlier) {

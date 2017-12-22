@@ -52,6 +52,11 @@ bool PlaneFromPointsLeastSquare(const std::vector<Eigen::Vector3d> &pts, Plane3D
 bool planeFromPointsRANSAC(const std::vector<Eigen::Vector3d> &pts, Plane3D &plane,
                            std::vector<bool> &is_inlier,
                            const double dis_thres, const int max_iter = 500, bool verbose = false);
+
+inline bool ThreePointsColinear(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, const Eigen::Vector3d& p3){
+  return (p2 - p1).cross(p1 - p3).norm() < std::numeric_limits<double>::epsilon();
+}
+
 }
 
 }

@@ -1,8 +1,11 @@
+#include "plane_stereo.h"
+
 #include <iostream>
 #include <opencv2/opencv.hpp>
 #include <glog/logging.h>
 #include <gflags/gflags.h>
-#include "plane_stereo.h"
+#include <OpenMesh/Core/IO/MeshIO.hh>
+#include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 
 using namespace std;
 
@@ -21,8 +24,19 @@ int main(int argc, char **argv) {
 
   DPM::Mesh mesh;
   CHECK(mesh.Read(std::string(argv[1]))) << "Can not read mesh: " << argv[1];
-  printf("Total number of vertices: %d\n", (int) mesh.vertices.size());
   std::vector<Eigen::Vector3d> vertices = mesh.vertices;
+
+  // Read mesh with OpenMesh
+//  OpenMesh::TriMesh_ArrayKernelT<> mesh;
+//  CHECK(OpenMesh::IO::read_mesh(mesh, argv[1])) << "Can not read mesh: " << argv[1];
+//  std::vector<Eigen::Vector3d> vertices;
+//  for (auto v_it = mesh.vertices_begin(); v_it != mesh.vertices_end(); ++v_it){
+//    auto pt = mesh.point(v_it);
+//    vertices.emplace_back(pt[0], pt[1], pt[2]);
+//  }
+
+  printf("Total number of vertices: %d\n", (int) vertices.size());
+
   const int W = (int) sqrt((double) vertices.size());
 
   constexpr int max_iter = 100;
@@ -48,7 +62,7 @@ int main(int argc, char **argv) {
   std::vector<Eigen::Vector3d> new_vertices;
   std::vector<int> plane_assignment;
   printf("Solving...\n");
-  DPM::SolvePlaneStereo(mesh.vertices, planes, new_vertices, plane_assignment, 5.0);
+  DPM::SolvePlaneStereo(vertices, planes, new_vertices, plane_assignment, 5.0);
 
 //    cv::Mat new_plane_map(W, W, CV_8UC3, cv::Scalar(255, 255, 255));
 //    for(auto i=0; i<W*W; ++i){
@@ -58,11 +72,11 @@ int main(int argc, char **argv) {
 //    cv::imshow("Plane assignment", new_plane_map);
 //    cv::waitKey(0);
 
-  DPM::Mesh result_mesh;
-  for (int vid: non_ground_index) {
-    result_mesh.vertices.push_back(new_vertices[vid]);
-  }
-  result_mesh.Write(argv[2]);
+//  DPM::Mesh result_mesh;
+//  for (int vid: non_ground_index) {
+//    result_mesh.vertices.push_back(new_vertices[vid]);
+//  }
+//  result_mesh.Write(argv[2]);
 
   return 0;
 }
