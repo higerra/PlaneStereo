@@ -92,16 +92,8 @@ void planeIntersection(const Plane3D &plane1,
 
 bool planeFromPointsLeastSquare(const std::vector<Eigen::Vector3d>& pts, Plane3D &plane) {
   VectorXd b(pts.size());
-  // MatrixXd A(pts.size(), 3);
+  b.setConstant(-1);
   Eigen::Map<const Eigen::MatrixXd> A(&pts[0][0], pts.size(), 3);
-  cout << A.rows() << ' ' << A.cols() << endl;
-
-  std::cout << A << std::endl;
-
-  for (auto i = 0; i < pts.size(); ++i) {
-    // A.block<1, 3>(i, 0) = pts[i];
-    b[i] = -1;
-  }
   Vector3d n = A.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
   const double epsilon = 1e-10;
   const double nn = n.norm();

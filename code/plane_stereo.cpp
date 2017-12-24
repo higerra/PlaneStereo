@@ -53,7 +53,7 @@ void GeneratePlanes(const std::vector<Eigen::Vector3d> &pc,
                     const int inner_iter,
                     const double threshold) {
   std::vector<Eigen::Vector3d> vertices = pc;
-  int W = (int) sqrt((double) pc.size());
+  // int W = (int) sqrt((double) pc.size());
 
   int num_attemped = 0;
   constexpr int kMaxAttempt = 3;
@@ -62,7 +62,7 @@ void GeneratePlanes(const std::vector<Eigen::Vector3d> &pc,
                                 cv::Vec3b(128, 255, 0), cv::Vec3b(128, 0, 255), cv::Vec3b(0, 128, 255),
                                 cv::Vec3b(255, 128, 0), cv::Vec3b(255, 0, 128), cv::Vec3b(0, 255, 128)};
 
-  color_map = cv::Mat(W, W, CV_8UC3, cv::Scalar(255, 255, 255));
+  // color_map = cv::Mat(W, W, CV_8UC3, cv::Scalar(255, 255, 255));
 
   // RemoveGround(vertices, threshold);
   int iter = 0;
@@ -85,8 +85,8 @@ void GeneratePlanes(const std::vector<Eigen::Vector3d> &pc,
     std::vector<Eigen::Vector3d> new_vertices;
     for (auto i = 0; i < vertices.size(); ++i) {
       if (is_inlier[i]) {
-        color_map.at<cv::Vec3b>((int) vertices[i][1], (int) vertices[i][0]) =
-            colors[(int) planes.size() % (int) colors.size()];
+//        color_map.at<cv::Vec3b>((int) vertices[i][1], (int) vertices[i][0]) =
+//            colors[(int) planes.size() % (int) colors.size()];
       } else {
         new_vertices.push_back(vertices[i]);
       }
