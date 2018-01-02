@@ -11,11 +11,9 @@ find_package(Gflags REQUIRED)
 find_package(Glog REQUIRED)
 find_package(Eigen REQUIRED)
 
-find_package(OpenMesh REQUIRED)
-
 add_executable(PlaneStereo main.cpp mesh.h mesh.cc
         plane3D.h plane3D.cpp
         plane_stereo.h plane_stereo.cpp)
 include_directories(${EIGEN_INCLUDE_DIR})
 
-target_link_libraries(PlaneStereo MRF ${OpenCV_LIBS} ${GFLAGS_LIBRARY} ${GLOG_LIBRARY} ${OPENMESH_LIBRARIES})
+target_link_libraries(PlaneStereo MRF ${OpenCV_LIBS} ${GFLAGS_LIBRARY} ${GLOG_LIBRARY})
