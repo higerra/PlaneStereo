@@ -4,8 +4,6 @@
 #include <opencv2/opencv.hpp>
 #include <glog/logging.h>
 #include <gflags/gflags.h>
-#include <OpenMesh/Core/IO/MeshIO.hh>
-#include <OpenMesh/Core/Mesh/TriMesh_ArrayKernelT.hh>
 
 using namespace std;
 
