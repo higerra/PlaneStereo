@@ -24,8 +24,7 @@ void RemoveGround(std::vector<Eigen::Vector3d> &vertices,
 
 void GeneratePlanes(const std::vector<Eigen::Vector3d> &pc,
                     std::vector<Plane3D> &planes,
-                    cv::Mat &color_map,
-                    const int inner_iter = 10,
+                    const int inner_iter = 1000,
                     const double threshold = 1);
 
 void SolvePlaneStereo(const std::vector<Eigen::Vector3d> &pt,

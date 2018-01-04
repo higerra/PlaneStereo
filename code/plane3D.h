@@ -34,8 +34,32 @@ class Plane3D {
 
   void setOffset(double o) { offset = o; }
 
-  double getDistance(const Eigen::Vector3d &pt) const;
-  Eigen::Vector3d projectFromeWorldtoPlane(const Eigen::Vector3d &planept) const;
+  double getSignedDistance(const Eigen::Vector3d &pt) const{
+    double nn = getNormal().norm();
+    CHECK_GE(nn, epsilon);
+    return (pt.dot(normal) + offset) / nn;
+  }
+
+  double getAbsoluteDistance(const Eigen::Vector3d& pt) const{
+    return std::fabs(getSignedDistance(pt));
+  }
+
+  double getSignedVerticalDistance(const Eigen::Vector3d& pt) const{
+    CHECK_NE(normal[2], 0) << "The plane is vertical.";
+    return pt[2] + (pt[0] * normal[0] + pt[1] * normal[1] + offset) / normal[2];
+  }
+
+  double getAbsoluteVerticalDistance(const Eigen::Vector3d& pt) const{
+    return std::fabs(getSignedVerticalDistance(pt));
+  }
+
+  Eigen::Vector3d projectFromWorldToPlane(const Eigen::Vector3d& world_pt) const{
+    return world_pt - normal * getSignedDistance(world_pt);
+  }
+
+  Eigen::Vector3d projectFromWorldToPlaneVertical(const Eigen::Vector3d& world_pt) const{
+    return world_pt - Eigen::Vector3d(0, 0, getSignedVerticalDistance(world_pt));
+  }
 
  private:
   Eigen::Vector3d normal;
@@ -54,7 +78,7 @@ bool planeFromPointsRANSAC(const std::vector<Eigen::Vector3d> &pts, Plane3D &pla
                            const double dis_thres, const int max_iter = 500, bool verbose = false);
 
 inline bool ThreePointsColinear(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, const Eigen::Vector3d& p3){
-  return (p2 - p1).cross(p1 - p3).norm() < std::numeric_limits<double>::epsilon();
+  return ((p2 - p1).cross(p1 - p3)).norm() < std::numeric_limits<double>::epsilon();
 }
 
 }

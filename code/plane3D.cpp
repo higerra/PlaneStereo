@@ -18,38 +18,28 @@ namespace DPM {
 double Plane3D::epsilon = 1e-4;
 
 Plane3D::Plane3D(const Vector3d &p0, const Vector3d &p1, const Vector3d &p2) {
-  Matrix3d A;
-  Vector3d b(-1, -1, -1);
-  A.block<1, 3>(0, 0) = p0;
-  A.block<1, 3>(1, 0) = p1;
-  A.block<1, 3>(2, 0) = p2;
+//  Matrix3d A;
+//  Vector3d b(-1, -1, -1);
+//  A.block<1, 3>(0, 0) = p0;
+//  A.block<1, 3>(1, 0) = p1;
+//  A.block<1, 3>(2, 0) = p2;
   CHECK (!plane_util::ThreePointsColinear(p0, p1, p2)) << "Colinear points"
                                                        << endl << "p0:" << p0
                                                        << endl << "p1:" << p1
                                                        << endl << "p2:" << p2;
-  normal = A.inverse() * b;
+  normal = (p1 - p0).cross(p2 - p0);
+  // normal = A.inverse() * b;
   const double norm = normal.norm();
   if (norm <= epsilon) {
     printf("Bad condition: (%.5f,%.5f,%.5f),(%.5f,%.5f,%.5f),(%.5f,%.5f,%.5f)\n", p0[0], p0[1], p0[2],
            p1[0], p1[1], p1[2], p2[0], p2[1], p2[2]);
   }
-  CHECK_GT(norm, 0) << endl << A;
+  // CHECK_GT(norm, 0) << endl << A;
   normal = normal / norm;
-  offset = 1 / norm;
-}
-
-double Plane3D::getDistance(const Vector3d &p) const {
-  double dis;
-  double nn = getNormal().norm();
-  CHECK_GE(nn, epsilon);
-  dis = std::abs((p.dot(normal) + offset) / nn);
-  return dis;
-}
-
-Vector3d Plane3D::projectFromeWorldtoPlane(const Vector3d &pt) const {
-  double dis = getDistance(pt);
-  Vector3d newpt = pt - normal * dis;
-  return newpt;
+  offset = -1 * normal.dot(p0);
+  CHECK_LE(std::fabs(p1.dot(normal) + offset), epsilon);
+  CHECK_LE(std::fabs(p2.dot(normal) + offset), epsilon);
+  // offset = 1 / norm;
 }
 
 namespace plane_util {
@@ -91,24 +81,23 @@ void planeIntersection(const Plane3D &plane1,
 }
 
 bool planeFromPointsLeastSquare(const std::vector<Eigen::Vector3d>& pts, Plane3D &plane) {
-  VectorXd b(pts.size());
+  Eigen::VectorXd b(pts.size());
   b.setConstant(-1);
-  Eigen::Map<const Eigen::MatrixXd> A(&pts[0][0], pts.size(), 3);
-  Vector3d n = A.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
-  const double epsilon = 1e-10;
+  Eigen::MatrixXd A(pts.size(), 3);
+  for (int i=0; i<pts.size(); ++i){
+    A.block<1, 3>(i, 0) = pts[i];
+  }
+
+  Eigen::Vector3d n = A.jacobiSvd(ComputeThinU | ComputeThinV).solve(b);
+
+  const double epsilon = std::numeric_limits<double>::epsilon();
   const double nn = n.norm();
   if (nn < epsilon) {
     return false;
   }
   n /= nn;
-  Vector3d pt(0, 0, 0);
-  if (n[0] != 0)
-    pt[0] = (-1.0 / nn) / n[0];
-  else if (n[1] != 0)
-    pt[1] = (-1.0 / nn) / n[1];
-  else
-    pt[2] = (-1.0 / nn) / n[2];
-  plane = Plane3D(pt, n);
+  plane.setNormal(n);
+  plane.setOffset(1.0 / nn);
   return true;
 }
 
@@ -137,13 +126,6 @@ bool planeFromPointsRANSAC(const std::vector<Eigen::Vector3d> &pts, Plane3D &pla
       iter--;
       continue;
     }
-//				if(verbose){
-//					printf("------------------\niter %d\n", iter);
-//					printf("id1:%d, id2:%d, id3:%d\n", id1, id2, id3);
-//					printf("%.5f,%.5f,%.5f\n", pts[id1][0], pts[id1][1], pts[id1][2]);
-//					printf("%.5f,%.5f,%.5f\n", pts[id2][0], pts[id2][1], pts[id2][2]);
-//					printf("%.5f,%.5f,%.5f\n", pts[id3][0], pts[id3][1], pts[id3][2]);
-//				}
     Eigen::Matrix3d A;
     A.block<1, 3>(0, 0) = pts[id1];
     A.block<1, 3>(1, 0) = pts[id2];
@@ -152,12 +134,16 @@ bool planeFromPointsRANSAC(const std::vector<Eigen::Vector3d> &pts, Plane3D &pla
       continue;
     }
 
+    if (A.determinant() < std::numeric_limits<double>::epsilon()){
+      continue;
+    }
+
     Plane3D curplane(pts[id1], pts[id2], pts[id3]);
     vector<bool> cur_inlier(pts.size(), false);
     vector<Vector3d> inliers;
     inliers.reserve(pts.size());
     for (int i = 0; i < pts.size(); ++i) {
-      double dis = curplane.getDistance(pts[i]);
+      double dis = curplane.getAbsoluteDistance(pts[i]);
       if (dis < dis_thres) {
         inliers.emplace_back(pts[i][0], pts[i][1], pts[i][2]);
         cur_inlier[i] = true;
@@ -168,12 +154,9 @@ bool planeFromPointsRANSAC(const std::vector<Eigen::Vector3d> &pts, Plane3D &pla
         LOG(WARNING) << "Least square failed";
         continue;
       }
+//      plane = curplane;
       max_inlier = inliers.size();
       is_inlier.swap(cur_inlier);
-//					if(verbose){
-//						printf("new fitted plane: (%.2f,%.2f,%.2f,%.2f)\n", plane.getNormal()[0], plane.getNormal()[1], plane.getNormal()[2], plane.getOffset());
-//						printf("Max inlier: %lu\n", max_inlier);
-//					}
     }
   }
   if (verbose) {
@@ -186,9 +169,7 @@ bool planeFromPointsRANSAC(const std::vector<Eigen::Vector3d> &pts, Plane3D &pla
            pts.size());
   }
 
-  if (plane.getNormal().norm() < epsilon)
-    return false;
-  return true;
+  return plane.getNormal().norm() >= epsilon;
 }
 
 }//namespace plane_util

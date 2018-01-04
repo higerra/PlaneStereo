@@ -21,7 +21,7 @@ std::vector<int> NonGroundIndex(const std::vector<Eigen::Vector3d> &vertices,
   Plane3D ground_plane(Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 1));
   std::vector<int> non_ground_index;
   for (int i = 0; i < vertices.size(); ++i) {
-    if (ground_plane.getDistance(vertices[i]) > threshold) {
+    if (ground_plane.getAbsoluteDistance(vertices[i]) > threshold) {
       non_ground_index.push_back(i);
     }
   }
@@ -33,7 +33,7 @@ void RemoveGround(std::vector<Eigen::Vector3d> &vertices,
   Plane3D ground_plane(Eigen::Vector3d(0, 0, 0), Eigen::Vector3d(0, 0, 1));
   std::vector<Eigen::Vector3d> non_ground_vert;
   for (const auto &vert: vertices) {
-    if (ground_plane.getDistance(vert) > threshold) {
+    if (ground_plane.getAbsoluteDistance(vert) > threshold) {
       non_ground_vert.push_back(vert);
     }
   }
@@ -49,20 +49,12 @@ void RemoveGround(std::vector<Eigen::Vector3d> &vertices,
 
 void GeneratePlanes(const std::vector<Eigen::Vector3d> &pc,
                     std::vector<Plane3D> &planes,
-                    cv::Mat &color_map,
                     const int inner_iter,
                     const double threshold) {
   std::vector<Eigen::Vector3d> vertices = pc;
-  // int W = (int) sqrt((double) pc.size());
 
   int num_attemped = 0;
   constexpr int kMaxAttempt = 3;
-
-  std::vector<cv::Vec3b> colors{cv::Vec3b(255, 0, 0), cv::Vec3b(0, 255, 0), cv::Vec3b(0, 0, 255),
-                                cv::Vec3b(128, 255, 0), cv::Vec3b(128, 0, 255), cv::Vec3b(0, 128, 255),
-                                cv::Vec3b(255, 128, 0), cv::Vec3b(255, 0, 128), cv::Vec3b(0, 255, 128)};
-
-  // color_map = cv::Mat(W, W, CV_8UC3, cv::Scalar(255, 255, 255));
 
   // RemoveGround(vertices, threshold);
   int iter = 0;
@@ -84,18 +76,13 @@ void GeneratePlanes(const std::vector<Eigen::Vector3d> &pc,
     planes.push_back(cur_plane);
     std::vector<Eigen::Vector3d> new_vertices;
     for (auto i = 0; i < vertices.size(); ++i) {
-      if (is_inlier[i]) {
-//        color_map.at<cv::Vec3b>((int) vertices[i][1], (int) vertices[i][0]) =
-//            colors[(int) planes.size() % (int) colors.size()];
-      } else {
+      if (!is_inlier[i]) {
         new_vertices.push_back(vertices[i]);
       }
     }
     vertices.swap(new_vertices);
-    printf("Iter %d, plane fitted: %d, number of vertices remained: %d\n",
-           iter,
-           (int) planes.size(),
-           (int) vertices.size());
+    printf("Iter %d, plane fitted: %d, number of vertices remained: %d\n", iter, static_cast<int>(planes.size()),
+           static_cast<int>(vertices.size()));
     iter++;
   }
 }
@@ -115,7 +102,8 @@ void SolvePlaneStereo(const std::vector<Eigen::Vector3d> &pt,
   // vid: vertex index; pid: plane index
   for (auto vid = 0; vid < pt.size(); ++vid) {
     for (auto pid = 0; pid < planes.size(); ++pid) {
-      unary[planes.size() * vid + pid] = planes[pid].getDistance(pt[vid]);
+      // unary[planes.size() * vid + pid] = planes[pid].getAbsoluteVerticalDistance(pt[vid]);
+      unary[planes.size() * vid + pid] = planes[pid].getAbsoluteDistance(pt[vid]);
     }
   }
 
@@ -160,7 +148,7 @@ void SolvePlaneStereo(const std::vector<Eigen::Vector3d> &pt,
   for (auto i = 0; i < W * W; ++i) {
     const int pid = mrf->getLabel(i);
     plane_assignment[i] = pid;
-    new_vertices[i] = planes[pid].projectFromeWorldtoPlane(pt[i]);
+    new_vertices[i] = planes[pid].projectFromWorldToPlaneVertical(pt[i]);
   }
 }
 
