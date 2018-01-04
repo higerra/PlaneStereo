@@ -68,14 +68,14 @@ class Plane3D {
 };
 
 namespace plane_util {
-void planeIntersection(const Plane3D &plane1,
-                       const Plane3D &plane2,
-                       Eigen::Vector3d &normal,
-                       Eigen::Vector3d &pt);
+void planeIntersection(const Plane3D &plane1, const Plane3D &plane2,
+                       Eigen::Vector3d &normal, Eigen::Vector3d &pt);
+
 bool PlaneFromPointsLeastSquare(const std::vector<Eigen::Vector3d> &pts, Plane3D &plane);
+
 bool planeFromPointsRANSAC(const std::vector<Eigen::Vector3d> &pts, Plane3D &plane,
                            std::vector<bool> &is_inlier,
-                           const double dis_thres, const int max_iter = 500, bool verbose = false);
+                           double dis_thres, int max_iter = 500);
 
 inline bool ThreePointsColinear(const Eigen::Vector3d& p1, const Eigen::Vector3d& p2, const Eigen::Vector3d& p3){
   return ((p2 - p1).cross(p1 - p3)).norm() < std::numeric_limits<double>::epsilon();

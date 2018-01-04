@@ -103,15 +103,11 @@ bool planeFromPointsLeastSquare(const std::vector<Eigen::Vector3d>& pts, Plane3D
 
 bool planeFromPointsRANSAC(const std::vector<Eigen::Vector3d> &pts, Plane3D &plane,
                            std::vector<bool> &is_inlier,
-                           const double dis_thres, const int max_iter, bool verbose) {
+                           const double dis_thres, const int max_iter) {
   size_t max_inlier = 0;
   const double epsilon = 1e-5;
   int N = (int) pts.size();
   CHECK_GE(N, 3);
-  if (verbose) {
-    printf("=========================\n");
-    cout << "Solving plane RANSAC:" << endl;
-  }
   plane = Plane3D();
 
   std::default_random_engine generator;
@@ -154,21 +150,10 @@ bool planeFromPointsRANSAC(const std::vector<Eigen::Vector3d> &pts, Plane3D &pla
         LOG(WARNING) << "Least square failed";
         continue;
       }
-//      plane = curplane;
       max_inlier = inliers.size();
       is_inlier.swap(cur_inlier);
     }
   }
-  if (verbose) {
-    printf("Optimal plane: (%.5f,%.5f,%.5f,%.5f), inlier count: %lu, total count: %lu\n",
-           plane.getNormal()[0],
-           plane.getNormal()[1],
-           plane.getNormal()[2],
-           plane.getOffset(),
-           max_inlier,
-           pts.size());
-  }
-
   return plane.getNormal().norm() >= epsilon;
 }
 

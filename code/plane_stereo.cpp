@@ -56,7 +56,6 @@ void GeneratePlanes(const std::vector<Eigen::Vector3d> &pc,
   int num_attemped = 0;
   constexpr int kMaxAttempt = 3;
 
-  // RemoveGround(vertices, threshold);
   int iter = 0;
   while (vertices.size() > 3) {
     Plane3D cur_plane;
@@ -102,8 +101,8 @@ void SolvePlaneStereo(const std::vector<Eigen::Vector3d> &pt,
   // vid: vertex index; pid: plane index
   for (auto vid = 0; vid < pt.size(); ++vid) {
     for (auto pid = 0; pid < planes.size(); ++pid) {
-      // unary[planes.size() * vid + pid] = planes[pid].getAbsoluteVerticalDistance(pt[vid]);
-      unary[planes.size() * vid + pid] = planes[pid].getAbsoluteDistance(pt[vid]);
+      unary[planes.size() * vid + pid] = planes[pid].getAbsoluteVerticalDistance(pt[vid]);
+      // unary[planes.size() * vid + pid] = planes[pid].getAbsoluteDistance(pt[vid]);
     }
   }
 
