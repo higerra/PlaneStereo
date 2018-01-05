@@ -92,7 +92,7 @@ void SolvePlaneStereo(const std::vector<Eigen::Vector3d> &pt,
                       std::vector<int> &plane_assignment,
                       const double lambda) {
   // construct problem
-  const int W = (int) sqrt((double) pt.size());
+  const int nVariable = (int)pt.size();
   const int nLabel = (int) planes.size();
 
   // assign unary cost
@@ -116,13 +116,22 @@ void SolvePlaneStereo(const std::vector<Eigen::Vector3d> &pt,
   SmoothnessCost *smoothnessCost = new SmoothnessCost(pairwise.data());
 
   EnergyFunction *energy_function = new EnergyFunction(dataCost, smoothnessCost);
-  std::shared_ptr<MRF> mrf(new Expansion(W, W, nLabel, energy_function));
+  std::shared_ptr<MRF> mrf(new Expansion(nVariable, nLabel, energy_function));
+  // Set the neighboring system
+  for (int i=0; i<pt.size(); ++i){
+    for (int j=0; j<i; ++j){
+      double dis_x_y = (pt[i].block<2, 1>(0, 0) - pt[j].block<2, 1>(0, 0)).norm();
+      if (dis_x_y <= 1.1){
+        mrf->setNeighbors(i, j, 1.0);
+      }
+    }
+  }
 
   mrf->initialize();
 
   std::default_random_engine generator;
   std::uniform_int_distribution<int> distribution(0, nLabel - 1);
-  for (auto i = 0; i < W * W; ++i) {
+  for (auto i = 0; i < nVariable; ++i) {
     mrf->setLabel(i, distribution(generator));
   }
 
@@ -144,7 +153,7 @@ void SolvePlaneStereo(const std::vector<Eigen::Vector3d> &pt,
   // store result
   new_vertices.resize(pt.size(), Eigen::Vector3d(0, 0, 0));
   plane_assignment.resize(pt.size(), 0);
-  for (auto i = 0; i < W * W; ++i) {
+  for (auto i = 0; i < nVariable; ++i) {
     const int pid = mrf->getLabel(i);
     plane_assignment[i] = pid;
     new_vertices[i] = planes[pid].projectFromWorldToPlaneVertical(pt[i]);

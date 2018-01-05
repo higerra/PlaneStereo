@@ -6,7 +6,7 @@
 #include <gflags/gflags.h>
 
 DEFINE_int32(RANSAC_max_iter, 1000, "The inner iterations of RANSAC");
-DEFINE_double(RANSAC_threshold, 0.5, "The inlier threshold of RANSAC");
+DEFINE_double(RANSAC_threshold, 0.3, "The inlier threshold of RANSAC");
 DEFINE_bool(has_ground, false, "If set to true, a ground plane will be computed by 3 corner points and removed");
 
 using namespace std;
